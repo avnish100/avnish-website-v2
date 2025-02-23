@@ -3,8 +3,19 @@ import { urlForImage } from '@/sanity/lib/image'
 import { PortableText } from '@portabletext/react'
 import Image from 'next/image'
 import type { Metadata } from "next";
+import { notFound } from 'next/navigation'
 
-async function getPost(slug: string) {
+interface Post {
+  _id: string;
+  title: string;
+  mainImage?: any;
+  publishedAt: string;
+  content: any;
+  excerpt?: string;
+  description?: string;
+}
+
+async function getPost(slug: string): Promise<Post | null> {
   return client.fetch(
     `*[_type == "post" && slug.current == $slug][0] {
       _id,
@@ -12,14 +23,19 @@ async function getPost(slug: string) {
       mainImage,
       publishedAt,
       content,
-      excerpt
+      excerpt,
+      description
     }`,
     { slug }
   )
 }
 
-export default async function PostPage( params:any) {
-  const post = await getPost(params.slug)
+export default async function PostPage({ params }: { params: Promise<{ slug: string }> }) {
+    const { slug } = await params;
+    const post = await getPost(slug);
+    if (!post) {
+        notFound()
+    }
 
   return (
     <article className="max-w-3xl mx-auto px-4 py-16">
@@ -51,18 +67,24 @@ export default async function PostPage( params:any) {
     </article>
   )
 }
-
-
-export async function generateMetadata(params:any): Promise<Metadata> {
-  // Fetch your post data here
-  const post = await getPost(params.slug);
+type Params = Promise<{ slug: string }>
+export async function generateMetadata({ params }: { params: Params }   ): Promise<Metadata> {
+    const { slug } = await params
+  const post = await getPost(slug);
+  
+  if (!post) {
+    return {
+      title: 'Post Not Found - Avnish Jha',
+      description: 'The requested post could not be found.'
+    }
+  }
 
   return {
     title: `${post.title} - Avnish Jha`,
-    description: post.excerpt || post.description,
+    description: post.excerpt || post.description || '',
     openGraph: {
       title: post.title,
-      description: post.excerpt || post.description,
+      description: post.excerpt || post.description || '',
       type: "article",
       publishedTime: post.publishedAt,
       authors: ["Avnish Jha"],
@@ -70,7 +92,7 @@ export async function generateMetadata(params:any): Promise<Metadata> {
     twitter: {
       card: "summary_large_image",
       title: post.title,
-      description: post.excerpt || post.description,
+      description: post.excerpt || post.description || '',
     },
   }
 } 
