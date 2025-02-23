@@ -19,7 +19,7 @@ async function getProject(slug: string) {
   )
 }
 
-export default async function ProjectPage({ params }: { params: { slug: string } }) {
+export default async function ProjectPage(params:any) {
   const project = await getProject(params.slug)
 
   return (

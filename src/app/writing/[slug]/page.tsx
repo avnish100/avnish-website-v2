@@ -18,7 +18,7 @@ async function getPost(slug: string) {
   )
 }
 
-export default async function PostPage({ params }: { params: { slug: string } }) {
+export default async function PostPage( params:any) {
   const post = await getPost(params.slug)
 
   return (
@@ -52,11 +52,8 @@ export default async function PostPage({ params }: { params: { slug: string } })
   )
 }
 
-type Props = {
-  params: { slug: string }
-}
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata(params:any): Promise<Metadata> {
   // Fetch your post data here
   const post = await getPost(params.slug);
 
